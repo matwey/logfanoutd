@@ -1,0 +1,39 @@
+# logfanoutd
+logfanoutd is a simple HTTP server able to handle range requests as per [RFC7233] powered by [libmicrohttpd] library.
+Conventional text log file can be thought as of persistent message queue and then HTTP range requests can be used as mechanism of message consumption relying on client performance.
+can be used to retrieve the log from a host to another one online.
+Range requests allow the multiple remote clients to fetch existing log file as well as to continuously request newly appended data with the pace which the client wishes.
+Using [libmicrohttpd] allows to achieve low resource requirements for the server application.
+
+## Building
+Following components are required to build logfanoutd:
+* [cmake] - cross-platform open-source build system;
+* [libmicrohttpd] - small C library to run an HTTP server;
+* [check] - unit testing framework for C;
+* [libcurl] - multiprotocol file transfer library.
+
+Then, the application can be compiled as the following:
+```
+mkdir build && cd build
+cmake ..
+make all test
+```
+
+## Running
+To run the server, the following options are available
+* ```--port``` - specify port number to listen on
+* ```--root_dir``` - specify root directory to serve
+
+```
+logfanout --port=8014 --root_dir=/var/log/remote
+```
+
+## Development
+Any pull-requests to the project are always welcome.
+
+[libmicrohttpd]:http://www.gnu.org/software/libmicrohttpd/
+[RFC7233]:https://tools.ietf.org/html/rfc7233
+[cmake]:http://www.cmake.org/
+[check]:http://check.sourceforge.net/
+[libcurl]:http://curl.haxx.se/libcurl/
+

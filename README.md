@@ -1,7 +1,6 @@
 # logfanoutd
 logfanoutd is a simple HTTP server able to handle range requests as per [RFC7233] powered by [libmicrohttpd] library.
 Conventional text log file can be thought as of persistent message queue and then HTTP range requests can be used as mechanism of message consumption relying on client performance.
-can be used to retrieve the log from a host to another one online.
 Range requests allow the multiple remote clients to fetch existing log file as well as to continuously request newly appended data with the pace which the client wishes.
 Using [libmicrohttpd] allows to achieve low resource requirements for the server application.
 

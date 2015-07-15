@@ -1,3 +1,5 @@
+[![Build Status](https://semaphoreci.com/api/v1/projects/4991dcb7-bb37-4b56-a9e8-277a454b2ff1/483984/badge.svg)](https://semaphoreci.com/matwey/logfanoutd)
+
 # logfanoutd
 logfanoutd is a simple HTTP server able to handle range requests as per [RFC7233] powered by [libmicrohttpd] library.
 Conventional text log file can be thought as of persistent message queue and then HTTP range requests can be used as mechanism of message consumption relying on client performance.

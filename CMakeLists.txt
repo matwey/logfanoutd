@@ -14,6 +14,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/include")
 file(GLOB_RECURSE SOURCES src/*.c)
 add_executable(logfanoutd ${SOURCES})
 target_link_libraries(logfanoutd ${MICROHTTPD})
+install(TARGETS logfanoutd DESTINATION bin)
 
 enable_testing()
 add_executable(test_vpath test/vpath.c src/vpath.c)

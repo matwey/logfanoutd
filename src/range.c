@@ -2,10 +2,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <range.h>
 
 #define min(x,y) ((x)<(y)?(x):(y))
+
+int x_strcasecmp(const char* s1, const char* s2) {
+	while(*s1 != '\0' && toupper(*s1++) == toupper(*s2++));
+	return toupper(*(s1-1)) - toupper(*(s2-1));
+}
+int x_strncasecmp(const char *s1, const char *s2, size_t n) {
+	while(n-- && *s1 != '\0' && toupper(*s1++) == toupper(*s2++));
+	return toupper(*(s1-1)) - toupper(*(s2-1));
+}
 
 char* parse_uint64(const char* value, uint64_t* x) {
 	uintmax_t tmpint;
@@ -23,7 +33,7 @@ int parse_range(const char* value, struct range_set* pset) {
 	static const char unit[] = "bytes=";
 	clear_range(pset);
 
-	if(strncmp(value, unit, 6) != 0) {
+	if(x_strncasecmp(value, unit, 6) != 0) {
 	// unsupported unit or wrong format
 		return -1;
 	}
@@ -64,7 +74,7 @@ void clear_range(struct range_set* pset) {
 int range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
 	struct range_set* pset = cls;
 
-	if(strcmp(key, MHD_HTTP_HEADER_RANGE) == 0) {
+	if(x_strcasecmp(key, MHD_HTTP_HEADER_RANGE) == 0) {
 		if(parse_range(value, pset)<0)
 			clear_range(pset);
 		return MHD_NO;

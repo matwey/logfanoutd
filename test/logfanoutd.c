@@ -144,6 +144,15 @@ START_TEST (test_singlefile_file_range3) {
 	ck_assert_int_eq(retcode, 206);
 }
 END_TEST
+START_TEST (test_singlefile_file_range_case) {
+	static char expected[3] = {0x01, 0x02, 0x00};
+	long retcode;
+	http_get_request_range(PROJECT_ROOT "/test/data/single", "http://127.0.0.1:7999/file", &retcode, pbuf, "range: bytes=1-2");
+	ck_assert_str_eq(pbuf->buf, expected);
+	ck_assert_int_eq(pbuf->size, 2);
+	ck_assert_int_eq(retcode, 206);
+}
+END_TEST
 
 Suite* logfanoutd_suite(void) {
 	Suite *s;
@@ -161,6 +170,7 @@ Suite* logfanoutd_suite(void) {
 	tcase_add_test(tc_core, test_singlefile_file_range1);
 	tcase_add_test(tc_core, test_singlefile_file_range2);
 	tcase_add_test(tc_core, test_singlefile_file_range3);
+	tcase_add_test(tc_core, test_singlefile_file_range_case);
 	suite_add_tcase(s, tc_core);
 
 	return s;

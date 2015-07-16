@@ -128,6 +128,14 @@ START_TEST (test_range_validation8) {
 	ck_assert_int_eq(is_valid_range(&rs, 500), 1);
 }
 END_TEST
+START_TEST (test_range_validation9) {
+	struct range_set rs;
+	rs.type = range_interval;
+	rs.range.interval.first = 4;
+	rs.range.interval.last  = 5000004;
+	ck_assert_int_eq(is_valid_range(&rs, 4), 0);
+}
+END_TEST
 START_TEST (test_range_size_offset1) {
 	uint64_t newsize;
 	off_t offset;
@@ -224,6 +232,7 @@ Suite* range_suite(void) {
 	tcase_add_test(tc_core, test_range_validation6);
 	tcase_add_test(tc_core, test_range_validation7);
 	tcase_add_test(tc_core, test_range_validation8);
+	tcase_add_test(tc_core, test_range_validation9);
 	tcase_add_test(tc_core, test_range_size_offset1);
 	tcase_add_test(tc_core, test_range_size_offset2);
 	tcase_add_test(tc_core, test_range_size_offset3);

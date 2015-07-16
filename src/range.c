@@ -92,7 +92,7 @@ int is_valid_range(struct range_set* pset, uint64_t size) {
 		if(pset->range.interval.last < pset->range.interval.first)
 			return 0;
 	case range_first:
-		if(pset->range.interval.first > size)
+		if(pset->range.interval.first >= size)
 			return 0;
 	default:;
 	}

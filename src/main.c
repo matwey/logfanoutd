@@ -81,6 +81,8 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 		} else if(inet_pton(AF_INET6, arg, &(((struct sockaddr_in6*)(&arguments->listen))->sin6_addr))) {
 			arguments->listen.sa_family = AF_INET6;
 			x_sockaddr_set_port(&arguments->listen, port);
+		} else {
+			return ARGP_ERR_UNKNOWN;
 		}
 		break;
 	default:

@@ -48,7 +48,11 @@ static size_t http_get_request_with_headers(const char* root_dir, const char* ur
 	CURL *c;
 	CURLcode errornum;
 
-	plf_state = logfanoutd_start(7999, 1, 1, root_dir);
+	struct sockaddr_in sa;
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(7999);
+	sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	plf_state = logfanoutd_start((struct sockaddr*)&sa, 1, 1, root_dir);
 	if(plf_state == NULL)
 		ck_abort_msg("Can not start daemon");
 	c = curl_easy_init();

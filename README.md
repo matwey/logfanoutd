@@ -24,9 +24,15 @@ make all test
 To run the server, the following options are available
 * ```--port``` - specify port number to listen on
 * ```--root_dir``` - specify root directory to serve
+* ```--listen``` - specify addr to listen on (optional)
 
 ```
 logfanout --port=8014 --root_dir=/var/log/remote
+```
+
+Or listen on loopback interface only:
+```
+logfanout --listen=127.0.0.1 --port=8014 --root_dir=/var/log/remote
 ```
 
 ## Development

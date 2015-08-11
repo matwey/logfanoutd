@@ -48,7 +48,7 @@ static size_t http_get_request_with_headers(const char* root_dir, const char* ur
 	CURL *c;
 	CURLcode errornum;
 
-	plf_state = logfanoutd_start(7999, 1, root_dir);
+	plf_state = logfanoutd_start(7999, 1, 1, root_dir);
 	if(plf_state == NULL)
 		ck_abort_msg("Can not start daemon");
 	c = curl_easy_init();

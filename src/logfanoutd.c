@@ -5,14 +5,19 @@
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include <range.h>
 #include <logfanoutd.h>
 #include <vpath.h>
+
+#define max(x,y) ((x)>(y)?(x):(y))
 
 size_t unescape_callback(void *cls, struct MHD_Connection *conn, char *uri) {
 	return remove_dot_segments(uri, uri);
@@ -246,7 +251,34 @@ char* x_getcwd() {
 	return getcwd(buf, PATH_MAX);
 }
 
-struct logfanoutd_state* logfanoutd_start(unsigned short port, int verbose, const char* root_dir) {
+static const char* x_inet_ntop(struct sockaddr* addr, char* buf, socklen_t size) {
+	switch(addr->sa_family) {
+	case AF_INET:
+		return inet_ntop(AF_INET, &(((struct sockaddr_in*)addr)->sin_addr), buf, size);
+	case AF_INET6:
+		return inet_ntop(AF_INET6, &(((struct sockaddr_in6*)addr)->sin6_addr), buf, size);
+	}
+	return NULL;
+}
+
+static void* log_callback(void * cls, const char * uri, struct MHD_Connection *con) {
+	char remote_addr[max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)] = {0};
+	char time_str[32] = {0};
+	time_t t;
+	struct tm *tm = NULL;
+	const union MHD_ConnectionInfo* info = NULL;
+
+	t = time(NULL);
+	tm = localtime(&t);
+	info = MHD_get_connection_info(con, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+	printf("%s %s %s\n",
+		(tm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", tm) ? time_str : "UNKNOWN"),
+		(info && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
+		uri);
+	return NULL;
+}
+
+struct logfanoutd_state* logfanoutd_start(unsigned short port, int verbose, int log, const char* root_dir) {
 	struct logfanoutd_state* newstate = malloc(sizeof(struct logfanoutd_state));
 	if(newstate == NULL) {
 		return NULL;
@@ -269,6 +301,7 @@ struct logfanoutd_state* logfanoutd_start(unsigned short port, int verbose, cons
 		request_handler, // MHD_AccessHandlerCallback dh
 		newstate,        // void *dh_cls
 		MHD_OPTION_UNESCAPE_CALLBACK, unescape_callback, NULL,
+		MHD_OPTION_URI_LOG_CALLBACK, (log ? log_callback : NULL), NULL,
 		MHD_OPTION_END);
 	if(newstate->MHD_Daemon == NULL) {
 		free(newstate);

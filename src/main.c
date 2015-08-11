@@ -8,11 +8,13 @@ struct arguments {
 	unsigned short port;
 	int verbose;
 	char* root_dir;
+	int log;
 };
 void set_default_args(struct arguments* pargs) {
 	pargs->port = 8000;
 	pargs->verbose = 0;
 	pargs->root_dir = NULL;
+	pargs->log = 0;
 }
 
 static char argp_doc[] = "logfanoutd - simple HTTP log fanout server";
@@ -20,6 +22,7 @@ static struct argp_option argp_options[] = {
 	{"port",    'p', "PORT", 0, "Use port number" },
 	{"root_dir",'r', "FILE", 0, "Use root dir" },
 	{"verbose", 'v', 0,      0, "Produce verbose output" },
+	{"log",     'l', 0,      0, "Log requests to stdout" },
 	{ 0 }
 };
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
@@ -34,6 +37,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 		break;
 	case 'v':
 		arguments->verbose = 1;
+		break;
+	case 'l':
+		arguments->log = 1;
 		break;
 	default:
 		return ARGP_ERR_UNKNOWN;
@@ -54,9 +60,7 @@ int main(int argc, char** argv) {
 	if(parse_args(argc, argv, &arguments))
 		return 1;
 
-	printf("Using port: %d\n", arguments.port);
-
-	plf_state = logfanoutd_start(arguments.port, arguments.verbose, arguments.root_dir);
+	plf_state = logfanoutd_start(arguments.port, arguments.verbose, arguments.log, arguments.root_dir);
 	if(plf_state == NULL)
 		return 1;
 

@@ -17,6 +17,15 @@
 #include <logfanoutd.h>
 #include <vpath.h>
 
+#ifndef MHD_HAS_RFFO64
+struct MHD_Response * MHD_create_response_from_fd_at_offset64(uint64_t size, int fd, uint64_t offset) {
+	const off_t offset2 = offset;
+	if((uint64_t)offset2 != offset) // Overflow here
+		return NULL;
+	return MHD_create_response_from_fd_at_offset(rsize, fd, offset2);
+}
+#endif
+
 #define max(x,y) ((x)>(y)?(x):(y))
 
 size_t unescape_callback(void *cls, struct MHD_Connection *conn, char *uri) {
@@ -134,7 +143,7 @@ static int add_header_printf(struct MHD_Response *response, const char* hdr, con
 	free(buf);
 	return ret;
 }
-static int add_header_range(struct MHD_Response *response, uint64_t size, uint64_t rsize, off_t offset) {
+static int add_header_range(struct MHD_Response *response, uint64_t size, uint64_t rsize, uint64_t offset) {
 	return add_header_printf(response, MHD_HTTP_HEADER_CONTENT_RANGE, "bytes %" PRIuMAX "-%" PRIuMAX "/%" PRIuMAX,
 		(intmax_t)offset, (intmax_t)rsize+(intmax_t)offset-1, (intmax_t)size);
 }
@@ -190,7 +199,7 @@ static int handle_file_range(struct MHD_Connection *connection, int fd, uint64_t
 	int ret;
 	struct MHD_Response *response;
 	uint64_t rsize;
-	off_t offset;
+	uint64_t offset;
 
 	if(!is_valid_range(prs, size)) {
 		close(fd);
@@ -198,7 +207,7 @@ static int handle_file_range(struct MHD_Connection *connection, int fd, uint64_t
 	}
 
 	range_to_size_and_offset(prs, size, &rsize, &offset);
-	response = MHD_create_response_from_fd_at_offset(rsize, fd, offset);
+	response = MHD_create_response_from_fd_at_offset64(rsize, fd, offset);
 	if(response == NULL)
 		goto fail;
 	if(add_header_range(response, size, rsize, offset) != MHD_YES)

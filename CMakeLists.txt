@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project(logfanoutd C)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(CheckSymbolExists)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MICROHTTPD REQUIRED libmicrohttpd)
@@ -11,6 +12,14 @@ find_package(CURL REQUIRED)
 set(CMAKE_C_FLAGS "-std=c99 -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED ${MICROHTTPD_CFLAGS} ${CHECK_CFLAGS}")
 
 include_directories ("${PROJECT_SOURCE_DIR}/include" ${MICROHTTPD_INCLUDE_DIRS} ${CHECK_INCLUDE_DIRS})
+
+set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${MICROHTTPD_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${MICROHTTPD_LIBRARIES})
+check_symbol_exists(MHD_create_response_from_fd_at_offset64 microhttpd.h MHD_HAS_RFFO64)
+
+if(DEFINED MHD_HAS_RFFO64)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMHD_HAS_RFFO64")
+endif(DEFINED MHD_HAS_RFFO64)
 
 file(GLOB_RECURSE SOURCES src/*.c)
 add_executable(logfanoutd ${SOURCES})

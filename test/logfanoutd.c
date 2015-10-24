@@ -157,6 +157,17 @@ START_TEST (test_singlefile_file_range_case) {
 	ck_assert_int_eq(retcode, 206);
 }
 END_TEST
+START_TEST (test_singlefile_file_range_case_64) {
+	long retcode;
+	http_get_request_range(PROJECT_ROOT "/test/data/single", "http://127.0.0.1:7999/file", &retcode, pbuf, "range: bytes=36893488147419103232-");
+	ck_assert_int_eq(pbuf->size, 0);
+#ifdef MHD_HAS_RFFO64
+	ck_assert_int_eq(retcode, 206);
+#else
+	ck_assert_int_eq(retcode, 500);
+#endif
+}
+END_TEST
 
 Suite* logfanoutd_suite(void) {
 	Suite *s;

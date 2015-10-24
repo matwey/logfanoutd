@@ -19,6 +19,6 @@ int range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const ch
 int parse_range(const char* value, struct range_set* pset);
 void clear_range(struct range_set* pset);
 int is_valid_range(struct range_set* pset, uint64_t size);
-void range_to_size_and_offset(struct range_set* pset, uint64_t size, uint64_t* newsize, uint64_t* offset);
+void range_to_size_and_offset(struct range_set* pset, uint64_t size, uint64_t* newsize, off_t* offset);
 
 #endif // _RANGE_H

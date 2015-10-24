@@ -138,7 +138,7 @@ START_TEST (test_range_validation9) {
 END_TEST
 START_TEST (test_range_size_offset1) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_suffix;
 	rs.range.length = 1;
@@ -149,7 +149,7 @@ START_TEST (test_range_size_offset1) {
 END_TEST
 START_TEST (test_range_size_offset2) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_suffix;
 	rs.range.length = 520;
@@ -160,7 +160,7 @@ START_TEST (test_range_size_offset2) {
 END_TEST
 START_TEST (test_range_size_offset3) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_first;
 	rs.range.interval.first = 400;
@@ -171,7 +171,7 @@ START_TEST (test_range_size_offset3) {
 END_TEST
 START_TEST (test_range_size_offset4) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_interval;
 	rs.range.interval.first = 400;
@@ -183,7 +183,7 @@ START_TEST (test_range_size_offset4) {
 END_TEST
 START_TEST (test_range_size_offset5) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_interval;
 	rs.range.interval.first = 400;
@@ -195,7 +195,7 @@ START_TEST (test_range_size_offset5) {
 END_TEST
 START_TEST (test_range_size_offset6) {
 	uint64_t newsize;
-	uint64_t offset;
+	off_t offset;
 	struct range_set rs;
 	rs.type = range_interval;
 	rs.range.interval.first = 400;

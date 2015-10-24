@@ -98,7 +98,7 @@ int is_valid_range(struct range_set* pset, uint64_t size) {
 	}
 	return 1;
 }
-void range_to_size_and_offset(struct range_set* pset, uint64_t size, uint64_t* newsize, uint64_t* offset) {
+void range_to_size_and_offset(struct range_set* pset, uint64_t size, uint64_t* newsize, off_t* offset) {
 	switch(pset->type) {
 	case range_interval:
 		*offset  = pset->range.interval.first;

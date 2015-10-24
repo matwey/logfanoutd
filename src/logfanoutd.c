@@ -134,7 +134,7 @@ static int add_header_printf(struct MHD_Response *response, const char* hdr, con
 	free(buf);
 	return ret;
 }
-static int add_header_range(struct MHD_Response *response, uint64_t size, uint64_t rsize, off_t offset) {
+static int add_header_range(struct MHD_Response *response, uint64_t size, uint64_t rsize, uint64_t offset) {
 	return add_header_printf(response, MHD_HTTP_HEADER_CONTENT_RANGE, "bytes %" PRIuMAX "-%" PRIuMAX "/%" PRIuMAX,
 		(intmax_t)offset, (intmax_t)rsize+(intmax_t)offset-1, (intmax_t)size);
 }
@@ -190,7 +190,7 @@ static int handle_file_range(struct MHD_Connection *connection, int fd, uint64_t
 	int ret;
 	struct MHD_Response *response;
 	uint64_t rsize;
-	off_t offset;
+	uint64_t offset;
 
 	if(!is_valid_range(prs, size)) {
 		close(fd);
@@ -198,7 +198,7 @@ static int handle_file_range(struct MHD_Connection *connection, int fd, uint64_t
 	}
 
 	range_to_size_and_offset(prs, size, &rsize, &offset);
-	response = MHD_create_response_from_fd_at_offset(rsize, fd, offset);
+	response = MHD_create_response_from_fd_at_offset64(rsize, fd, offset);
 	if(add_header_range(response, size, rsize, offset) != MHD_YES) {
 		MHD_destroy_response(response);
 		return handle_error(connection, MHD_HTTP_INTERNAL_SERVER_ERROR);

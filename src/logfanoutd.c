@@ -22,7 +22,7 @@ struct MHD_Response * MHD_create_response_from_fd_at_offset64(uint64_t size, int
 	const off_t offset2 = offset;
 	if((uint64_t)offset2 != offset) // Overflow here
 		return NULL;
-	return MHD_create_response_from_fd_at_offset(rsize, fd, offset2);
+	return MHD_create_response_from_fd_at_offset(size, fd, offset2);
 }
 #endif
 

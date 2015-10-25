@@ -199,13 +199,18 @@ static int handle_file_range(struct MHD_Connection *connection, int fd, uint64_t
 
 	range_to_size_and_offset(prs, size, &rsize, &offset);
 	response = MHD_create_response_from_fd_at_offset(rsize, fd, offset);
-	if(add_header_range(response, size, rsize, offset) != MHD_YES) {
-		MHD_destroy_response(response);
-		return handle_error(connection, MHD_HTTP_INTERNAL_SERVER_ERROR);
-	}
+	if(response == NULL)
+		goto fail;
+	if(add_header_range(response, size, rsize, offset) != MHD_YES)
+		goto fail_destroy;
 	ret = MHD_queue_response(connection, MHD_HTTP_PARTIAL_CONTENT, response);
 	MHD_destroy_response(response);
 	return ret;
+
+fail_destroy:
+	MHD_destroy_response(response);
+fail:
+	return handle_error(connection, MHD_HTTP_INTERNAL_SERVER_ERROR);
 }
 static int handle_file(struct MHD_Connection *connection, struct vpath* pvpath) {
 	int fd;

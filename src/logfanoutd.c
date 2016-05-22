@@ -287,7 +287,7 @@ static void* log_callback(void * cls, const char * uri, struct MHD_Connection *c
 	info = MHD_get_connection_info(con, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
 	printf("%s %s %s\n",
 		(tm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", tm) ? time_str : "UNKNOWN"),
-		(info && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
+		(info && info->client_addr && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
 		uri);
 	return NULL;
 }

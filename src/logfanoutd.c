@@ -275,7 +275,11 @@ static const char* x_inet_ntop(struct sockaddr* addr, char* buf, socklen_t size)
 	return NULL;
 }
 
+#if MHD_VERSION > 0x00093000
 static void* log_callback(void * cls, const char * uri, struct MHD_Connection *con) {
+#else
+static void* log_callback(void * cls, const char * uri) {
+#endif // MHD_VERSION > 0x00093000
 	char remote_addr[max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)] = {0};
 	char time_str[32] = {0};
 	time_t t;
@@ -284,10 +288,12 @@ static void* log_callback(void * cls, const char * uri, struct MHD_Connection *c
 
 	t = time(NULL);
 	tm = localtime(&t);
+#if MHD_VERSION > 0x00093000
 	info = MHD_get_connection_info(con, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+#endif // MHD_VERSION > 0x00093000
 	printf("%s %s %s\n",
 		(tm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", tm) ? time_str : "UNKNOWN"),
-		(info && info->client_addr && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
+		(info && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
 		uri);
 	return NULL;
 }

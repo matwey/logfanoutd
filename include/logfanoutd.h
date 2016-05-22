@@ -10,7 +10,16 @@ struct logfanoutd_state {
 	char* root_dir;
 };
 
-struct logfanoutd_state* logfanoutd_start(struct sockaddr* listen, int verbose, int log, const char* root_dir);
+struct logfanoutd_listen {
+	enum {
+		LOGFANOUTD_LISTEN_SOCKADDR
+	} type;
+	union {
+		struct sockaddr sa;
+	} value;
+};
+
+struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, const char* root_dir);
 void logfanoutd_stop(struct logfanoutd_state* state);
 
 #endif // _LOGFANOUNTD_H

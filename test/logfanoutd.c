@@ -45,14 +45,16 @@ static size_t fill_buffer(void* buf, size_t size, size_t nmemd, void* userdata) 
 
 static size_t http_get_request_with_headers(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr) {
 	struct logfanoutd_state* plf_state;
+	struct logfanoutd_listen lf_listen;
 	CURL *c;
 	CURLcode errornum;
 
-	struct sockaddr_in sa;
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(7999);
-	sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	plf_state = logfanoutd_start((struct sockaddr*)&sa, 1, 1, root_dir);
+	lf_listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
+	struct sockaddr_in* sa = (struct sockaddr_in*)&lf_listen.value.sa;
+	sa->sin_family = AF_INET;
+	sa->sin_port = htons(7999);
+	sa->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	plf_state = logfanoutd_start(&lf_listen, 1, 1, root_dir);
 	if(plf_state == NULL)
 		ck_abort_msg("Can not start daemon");
 	c = curl_easy_init();

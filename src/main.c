@@ -9,16 +9,17 @@
 #include <logfanoutd.h>
 
 struct arguments {
-	struct sockaddr listen;
+	struct logfanoutd_listen listen;
 	int verbose;
 	char* root_dir;
 	int log;
 };
 void set_default_args(struct arguments* pargs) {
-	struct sockaddr* sa = &pargs->listen;
+	struct sockaddr* sa = &pargs->listen.value.sa;
 	sa->sa_family = AF_INET;
 	((struct sockaddr_in*)sa)->sin_port = htons(8000);
 	((struct sockaddr_in*)sa)->sin_addr.s_addr = htonl(INADDR_ANY);
+	pargs->listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
 	pargs->verbose = 0;
 	pargs->root_dir = NULL;
 	pargs->log = 0;
@@ -62,7 +63,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 
 	switch (key) {
 	case 'p':
-		x_sockaddr_set_port(&arguments->listen, atoi(arg));
+		x_sockaddr_set_port(&arguments->listen.value.sa, atoi(arg));
 		break;
 	case 'r':
 		arguments->root_dir = arg;
@@ -74,13 +75,15 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 		arguments->log = 1;
 		break;
 	case 256:
-		port = x_sockaddr_get_port(&arguments->listen);
-		if(inet_pton(AF_INET, arg, &(((struct sockaddr_in*)(&arguments->listen))->sin_addr))) {
-			arguments->listen.sa_family = AF_INET;
-			x_sockaddr_set_port(&arguments->listen, port);
-		} else if(inet_pton(AF_INET6, arg, &(((struct sockaddr_in6*)(&arguments->listen))->sin6_addr))) {
-			arguments->listen.sa_family = AF_INET6;
-			x_sockaddr_set_port(&arguments->listen, port);
+		port = x_sockaddr_get_port(&arguments->listen.value.sa);
+		if(inet_pton(AF_INET, arg, &(((struct sockaddr_in*)(&arguments->listen.value.sa))->sin_addr))) {
+			arguments->listen.value.sa.sa_family = AF_INET;
+			x_sockaddr_set_port(&arguments->listen.value.sa, port);
+			arguments->listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
+		} else if(inet_pton(AF_INET6, arg, &(((struct sockaddr_in6*)(&arguments->listen.value.sa))->sin6_addr))) {
+			arguments->listen.value.sa.sa_family = AF_INET6;
+			x_sockaddr_set_port(&arguments->listen.value.sa, port);
+			arguments->listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
 		} else {
 			return ARGP_ERR_UNKNOWN;
 		}

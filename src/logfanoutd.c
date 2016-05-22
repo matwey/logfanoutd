@@ -292,6 +292,22 @@ static void* log_callback(void * cls, const char * uri, struct MHD_Connection *c
 	return NULL;
 }
 
+static unsigned short logfanountd_listen_famity(struct logfanoutd_listen* listen) {
+	struct sockaddr sa;
+	socklen_t salen = sizeof(sa);
+	switch (listen->type) {
+		case LOGFANOUTD_LISTEN_SOCKADDR:
+			return listen->value.sa.sa_family;
+			break;
+		case LOGFANOUTD_LISTEN_FD:
+			if (getsockname(listen->value.fd, &sa, &salen) == 0) {
+				return sa.sa_family;
+			}
+			break;
+	};
+	return -1;
+}
+
 struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, const char* root_dir) {
 	struct logfanoutd_state* newstate = malloc(sizeof(struct logfanoutd_state));
 	if(newstate == NULL) {
@@ -310,13 +326,14 @@ struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int 
 	newstate->MHD_Daemon = MHD_start_daemon(
 		MHD_USE_SELECT_INTERNALLY |
 			(verbose ? MHD_USE_DEBUG : MHD_NO_FLAG) |
-			(listen->value.sa.sa_family == AF_INET6 ? MHD_USE_IPv6 : MHD_NO_FLAG),
+			(logfanountd_listen_famity(listen) == AF_INET6 ? MHD_USE_IPv6 : MHD_NO_FLAG),
 		0,
 		NULL, // MHD_AcceptPolicyCallback apc
 		NULL, // void *apc_cls 
 		request_handler, // MHD_AccessHandlerCallback dh
 		newstate,        // void *dh_cls
-		MHD_OPTION_SOCK_ADDR, &listen->value.sa,
+		MHD_OPTION_SOCK_ADDR, (listen->type == LOGFANOUTD_LISTEN_SOCKADDR ? &listen->value.sa : NULL),
+		MHD_OPTION_LISTEN_SOCKET, (listen->type == LOGFANOUTD_LISTEN_FD ? listen->value.fd : -1),
 		MHD_OPTION_UNESCAPE_CALLBACK, unescape_callback, NULL,
 		MHD_OPTION_URI_LOG_CALLBACK, (log ? log_callback : NULL), NULL,
 		MHD_OPTION_END);

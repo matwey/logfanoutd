@@ -43,18 +43,12 @@ static size_t fill_buffer(void* buf, size_t size, size_t nmemd, void* userdata) 
 	return newsize;
 }
 
-static size_t http_get_request_with_headers(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr) {
+static size_t http_get_request_with_headers_and_listen(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr, struct logfanoutd_listen* plf_listen) {
 	struct logfanoutd_state* plf_state;
-	struct logfanoutd_listen lf_listen;
 	CURL *c;
 	CURLcode errornum;
 
-	lf_listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
-	struct sockaddr_in* sa = (struct sockaddr_in*)&lf_listen.value.sa;
-	sa->sin_family = AF_INET;
-	sa->sin_port = htons(7999);
-	sa->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	plf_state = logfanoutd_start(&lf_listen, 1, 1, root_dir);
+	plf_state = logfanoutd_start(plf_listen, 1, 1, root_dir);
 	if(plf_state == NULL)
 		ck_abort_msg("Can not start daemon");
 	c = curl_easy_init();
@@ -73,6 +67,16 @@ static size_t http_get_request_with_headers(const char* root_dir, const char* ur
 
 	curl_easy_cleanup(c);
         logfanoutd_stop(plf_state);
+}
+static size_t http_get_request_with_headers(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr) {
+	struct logfanoutd_listen lf_listen;
+	lf_listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
+	struct sockaddr_in* sa = (struct sockaddr_in*)&lf_listen.value.sa;
+	sa->sin_family = AF_INET;
+	sa->sin_port = htons(7999);
+	sa->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+	return http_get_request_with_headers_and_listen(root_dir, url, pretcode, pbuf, hdr, &lf_listen);
 }
 static size_t http_get_request(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf) {
 	return http_get_request_with_headers(root_dir, url, pretcode, pbuf, NULL);
@@ -119,6 +123,25 @@ START_TEST (test_singlefile_file) {
 	for(i = 0; i < sizeof(expected)/sizeof(expected[0]); ++i) expected[i] = i;
 	long retcode;
 	http_get_request(PROJECT_ROOT "/test/data/single", "http://127.0.0.1:7999/file", &retcode, pbuf);
+	ck_assert_str_eq(pbuf->buf+1, expected+1);
+	ck_assert_int_eq(retcode, 200);
+}
+END_TEST
+START_TEST (test_singlefile_file_fd) {
+	struct logfanoutd_listen lf_listen;
+	struct sockaddr_in sa;
+	static char expected[257];
+	size_t i = 0;
+	for(i = 0; i < sizeof(expected)/sizeof(expected[0]); ++i) expected[i] = i;
+	long retcode;
+	sa.sin_family = AF_INET;
+	sa.sin_port = htons(7999);
+	sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	lf_listen.type = LOGFANOUTD_LISTEN_FD;
+	lf_listen.value.fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	bind(lf_listen.value.fd, (struct sockaddr*)&sa, sizeof(sa));
+	listen(lf_listen.value.fd, 5);
+	http_get_request_with_headers_and_listen(PROJECT_ROOT "/test/data/single", "http://127.0.0.1:7999/file", &retcode, pbuf, NULL, &lf_listen);
 	ck_assert_str_eq(pbuf->buf+1, expected+1);
 	ck_assert_int_eq(retcode, 200);
 }
@@ -184,6 +207,7 @@ Suite* logfanoutd_suite(void) {
 	tcase_add_test(tc_core, test_empty_dir_404);
 	tcase_add_test(tc_core, test_singlefile_dir);
 	tcase_add_test(tc_core, test_singlefile_file);
+	tcase_add_test(tc_core, test_singlefile_file_fd);
 	tcase_add_test(tc_core, test_singlefile_file_range1);
 	tcase_add_test(tc_core, test_singlefile_file_range2);
 	tcase_add_test(tc_core, test_singlefile_file_range3);

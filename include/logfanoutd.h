@@ -12,10 +12,12 @@ struct logfanoutd_state {
 
 struct logfanoutd_listen {
 	enum {
-		LOGFANOUTD_LISTEN_SOCKADDR
+		LOGFANOUTD_LISTEN_SOCKADDR,
+		LOGFANOUTD_LISTEN_FD
 	} type;
 	union {
 		struct sockaddr sa;
+		int fd;
 	} value;
 };
 

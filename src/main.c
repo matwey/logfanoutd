@@ -6,6 +6,10 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#ifdef HAS_SYSTEMD
+#   include <systemd/sd-daemon.h>
+#endif // HAS_SYSTEMD
+
 #include <logfanoutd.h>
 
 struct arguments {
@@ -32,6 +36,9 @@ static struct argp_option argp_options[] = {
 	{"verbose", 'v', 0,      0, "Produce verbose output" },
 	{"log",     'l', 0,      0, "Log requests to stdout" },
 	{"listen",  256, "ADDR", 0, "Address to listen on" },
+#ifdef HAS_SYSTEMD
+	{"systemd", 257, 0,      0, "Use systemd activated socket" },
+#endif // HAS_SYSTEMD
 	{ 0 }
 };
 
@@ -60,6 +67,9 @@ static unsigned short x_sockaddr_get_port(struct sockaddr* sa) {
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 	struct arguments *arguments = state->input;
 	unsigned short port;
+#ifdef HAS_SYSTEMD
+	int num_sockets;
+#endif // HAS_SYSTEMD
 
 	switch (key) {
 	case 'p':
@@ -88,6 +98,24 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 			return ARGP_ERR_UNKNOWN;
 		}
 		break;
+#ifdef HAS_SYSTEMD
+	case 257:
+		num_sockets = sd_listen_fds(0);
+		if (num_sockets == 1) {
+			arguments->listen.type = LOGFANOUTD_LISTEN_FD;
+			arguments->listen.value.fd = SD_LISTEN_FDS_START;
+		} else {
+			if (num_sockets == 0) {
+				fprintf(stderr, "No sockets are provided by systemd\n");
+			} else if (num_sockets < 0) {
+				fprintf(stderr, "An error occured during sd_listen_fds\n");
+			} else if (num_sockets > 1) {
+				fprintf(stderr, "Too many sockets are provided by systemd\n");
+			}
+			return ARGP_ERR_UNKNOWN;
+		}
+		break;
+#endif // HAS_SYSTEMD
 	default:
 		return ARGP_ERR_UNKNOWN;
 	}

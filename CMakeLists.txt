@@ -7,11 +7,12 @@ include(CheckSymbolExists)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MICROHTTPD REQUIRED libmicrohttpd)
 pkg_check_modules(CHECK REQUIRED check)
+pkg_check_modules(SYSTEMD libsystemd)
 find_package(CURL REQUIRED)
 
-set(CMAKE_C_FLAGS "-std=c99 -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED ${MICROHTTPD_CFLAGS} ${CHECK_CFLAGS}")
+set(CMAKE_C_FLAGS "-std=c99 -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED ${MICROHTTPD_CFLAGS} ${CHECK_CFLAGS} ${SYSTEMD_CFLAGS}")
 
-include_directories ("${PROJECT_SOURCE_DIR}/include" ${MICROHTTPD_INCLUDE_DIRS} ${CHECK_INCLUDE_DIRS})
+include_directories ("${PROJECT_SOURCE_DIR}/include" ${MICROHTTPD_INCLUDE_DIRS} ${CHECK_INCLUDE_DIRS} ${SYSTEMD_INCLUDE_DIRS})
 
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES} ${MICROHTTPD_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${MICROHTTPD_LIBRARIES})
@@ -20,10 +21,13 @@ check_symbol_exists(MHD_create_response_from_fd_at_offset64 microhttpd.h MHD_HAS
 if(MHD_HAS_RFFO64)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMHD_HAS_RFFO64")
 endif(MHD_HAS_RFFO64)
+if(SYSTEMD_FOUND)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAS_SYSTEMD")
+endif(SYSTEMD_FOUND)
 
 file(GLOB_RECURSE SOURCES src/*.c)
 add_executable(logfanoutd ${SOURCES})
-target_link_libraries(logfanoutd ${MICROHTTPD_LIBRARIES})
+target_link_libraries(logfanoutd ${MICROHTTPD_LIBRARIES} ${SYSTEMD_LIBRARIES})
 install(TARGETS logfanoutd DESTINATION bin)
 
 enable_testing()

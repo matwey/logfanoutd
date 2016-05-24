@@ -35,6 +35,10 @@ add_executable(test_vpath test/vpath.c src/vpath.c)
 target_link_libraries(test_vpath ${CHECK_LIBRARIES})
 add_test(test_vpath test_vpath)
 
+add_executable(test_list test/list.c src/list.c)
+target_link_libraries(test_list ${CHECK_LIBRARIES})
+add_test(test_list test_list)
+
 add_executable(test_range test/range.c src/range.c)
 target_link_libraries(test_range ${CHECK_LIBRARIES})
 add_test(test_range test_range)

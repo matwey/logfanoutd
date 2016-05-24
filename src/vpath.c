@@ -88,15 +88,22 @@ int remove_dot_segments(char* input, char* output) {
 #undef RDS_DO_D
 #undef RDS_DO_E
 
-struct vpath* init_vpath(const char* root_dir, const char* path) {
-	struct vpath* ret = malloc(sizeof(struct vpath));
+struct vpath* init_vpath(const struct vpath_lookup* lookup, const char* path) {
+	struct vpath_match* m = NULL;
+	struct vpath* ret = NULL;
+
+	m = match_vpath(lookup, path);
+	if(m == NULL)
+		goto ret;
+
+	ret = malloc(sizeof(struct vpath));
 	if(ret == NULL)
 		goto ret;
 	ret->vpath = strdup(path);
 	if(ret->vpath == NULL) {
 		goto ret_vpath;
 	}
-	ret->ppath = cat_path(root_dir, path);
+	ret->ppath = cat_path(m->pair.ppath, path + m->len);
 	if(ret->ppath == NULL) {
 		goto ret_ppath;
 	}

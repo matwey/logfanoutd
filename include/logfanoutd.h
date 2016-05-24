@@ -7,7 +7,7 @@
 
 struct logfanoutd_state {
 	struct MHD_Daemon* MHD_Daemon;
-	char* root_dir;
+	struct vpath_lookup* lookup;
 };
 
 struct logfanoutd_listen {

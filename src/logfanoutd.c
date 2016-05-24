@@ -244,7 +244,7 @@ int request_handler(void *cls, struct MHD_Connection *connection,
 	struct vpath* pvpath;
 	int ret;
 
-	pvpath = init_vpath(plf_state->root_dir, url);
+	pvpath = init_vpath(plf_state->lookup, url);
 	if(pvpath == NULL)
 		return handle_error(connection, MHD_HTTP_NOT_FOUND);
 
@@ -315,16 +315,22 @@ static unsigned short logfanountd_listen_famity(struct logfanoutd_listen* listen
 }
 
 struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, const char* root_dir) {
+	struct vpath_pair root;
+	struct vpath_pair* pairs[] = {&root};
 	struct logfanoutd_state* newstate = malloc(sizeof(struct logfanoutd_state));
 	if(newstate == NULL) {
 		return NULL;
 	}
-	if(root_dir) {
-		newstate->root_dir = strdup(root_dir);
-	} else {
-		newstate->root_dir = x_getcwd();
+	root.vpath = "/";
+	root.ppath = root_dir ? strdup(root_dir) : x_getcwd();
+	if (root.ppath == NULL) {
+		free(newstate);
+		return NULL;
 	}
-	if(newstate->root_dir == NULL) {
+
+	newstate->lookup = init_vpath_lookup(pairs, 1);
+	free(root.ppath);
+	if (newstate->lookup == NULL) {
 		free(newstate);
 		return NULL;
 	}
@@ -352,6 +358,6 @@ struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int 
 }
 void logfanoutd_stop(struct logfanoutd_state* state) {
 	MHD_stop_daemon(state->MHD_Daemon);
-	free(state->root_dir);
+	free_vpath_lookup(state->lookup);
 	free(state);
 }

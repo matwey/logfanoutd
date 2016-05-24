@@ -27,7 +27,7 @@ struct vpath_lookup;
 int remove_dot_segments(char* input, char* output);
 int cmp_vpath_pair(const struct vpath_pair* x, const struct vpath_pair* y);
 
-struct vpath* init_vpath(const char* root_dir, const char* path);
+struct vpath* init_vpath(const struct vpath_lookup* lookup, const char* path);
 void free_vpath(struct vpath* pvpath);
 int is_directory(struct vpath* pvpath);
 

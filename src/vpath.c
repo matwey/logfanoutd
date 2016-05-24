@@ -6,6 +6,15 @@
 
 #include <vpath.h>
 
+struct vpath_lookup {
+	size_t alias_num;
+	size_t prefix_len;
+	size_t dest_len;
+	char* prefix;
+	char* dest;
+	struct vpath_match* match;
+};
+
 static char* cat_path(const char* base, const char* path) {
 	size_t baselen = strlen(base);
 	size_t pathlen = strlen(path);
@@ -105,11 +114,101 @@ ret_vpath:
 ret:
 	return NULL;
 }
+
 void free_vpath(struct vpath* pvpath) {
 	free(pvpath->ppath);
 	free(pvpath->vpath);
 	free(pvpath);
 }
+
 int is_directory(struct vpath* pvpath) {
 	return S_ISDIR(pvpath->stat.st_mode);
+}
+
+int cmp_vpath_pair(const struct vpath_pair* x, const struct vpath_pair* y) {
+	return strcmp(x->vpath, y->vpath);
+}
+
+static int init_vpath_lookup_cmp(const void* x, const void* y) {
+	const struct vpath_pair* x1 = *((const struct vpath_pair**)x);
+	const struct vpath_pair* y1 = *((const struct vpath_pair**)y);
+	return cmp_vpath_pair(x1, y1);
+}
+
+struct vpath_lookup* init_vpath_lookup(struct vpath_pair** pairs, size_t size) {
+	struct vpath_lookup* lookup = NULL;
+	size_t i;
+
+	qsort(pairs, size, sizeof(struct vpath_pair*), &init_vpath_lookup_cmp);
+
+	lookup = (struct vpath_lookup*)malloc(sizeof(struct vpath_lookup));
+	if (lookup == NULL)
+		goto ret;
+
+	lookup->alias_num = size;
+
+	lookup->match = (struct vpath_match*)calloc(size, sizeof(struct vpath_match));
+	if (lookup->match == NULL)
+		goto ret_match;
+
+	lookup->prefix_len = 0;
+	lookup->dest_len = 0;
+	for (i = 0; i < size; ++i) {
+		lookup->match[i].len = strlen(pairs[i]->vpath);
+		const size_t vpath_len = lookup->match[i].len + 1;
+		const size_t ppath_len = strlen(pairs[i]->ppath) + 1;
+		lookup->prefix_len = (lookup->prefix_len < vpath_len ? vpath_len : lookup->prefix_len);
+		lookup->dest_len = (lookup->dest_len < ppath_len ? ppath_len : lookup->dest_len);
+	}
+
+	lookup->prefix = (char*)calloc(size * (lookup->prefix_len + lookup->dest_len), sizeof(char));
+	if (lookup->prefix == NULL)
+		goto ret_prefix;
+	lookup->dest = lookup->prefix + size * lookup->prefix_len;
+
+	for (i = 0; i < size; ++i) {
+		lookup->match[i].pair.vpath = lookup->prefix + i * lookup->prefix_len;
+		lookup->match[i].pair.ppath = lookup->dest + i * lookup->dest_len;
+		strcpy(lookup->match[i].pair.vpath, pairs[i]->vpath);
+		strcpy(lookup->match[i].pair.ppath, pairs[i]->ppath);
+	}
+
+	return lookup;
+
+ret_prefix:
+	free(lookup->match);
+ret_match:
+	free(lookup);
+ret:
+	return NULL;
+}
+
+struct vpath_match* match_vpath(const struct vpath_lookup* lookup, const char* vpath) {
+	struct vpath_match* matched = NULL;
+	size_t i,j;
+	size_t lower = 0;
+	size_t upper = lookup->alias_num;
+
+	for (i = 0; i < lookup->prefix_len && lower < upper; ++i) {
+		if (lookup->prefix[i + lower * lookup->prefix_len] == '\0') {
+			matched = lookup->match + lower;
+			lower++;
+		}
+
+		for (; lookup->prefix[i + lower * lookup->prefix_len] != vpath[i] && lower < upper; ++lower);
+
+		for (; lookup->prefix[i + (upper - 1) * lookup->prefix_len] != vpath[i] && lower < upper; --upper);
+
+		if (vpath[i] == '\0') {
+			break;
+		}
+	}
+
+	return matched;
+};
+
+void free_vpath_lookup(struct vpath_lookup* lookup) {
+	free(lookup->prefix);
+	free(lookup->match);
+	free(lookup);
 }

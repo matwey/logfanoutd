@@ -9,7 +9,9 @@ struct list_element {
 void* init_list(void* list) {
 	struct list_element* e = (struct list_element*)list;
 
-	e->next = NULL;
+	if (e != NULL) {
+		e->next = NULL;
+	}
 	return list;
 }
 
@@ -25,15 +27,19 @@ size_t list_size(void* list) {
 	return size;
 }
 
-void list_push_back(void* list, void* element) {
+void* list_push_back(void* list, void* element) {
 	struct list_element* l = (struct list_element*)list;
 	struct list_element* e = (struct list_element*)element;
 
+	if (l == NULL) {
+		return e;
+	}
 	while (l->next != NULL) {
 		l = l->next;
 	}
 
 	l->next = e;
+	return l;
 }
 
 void free_list(void* list) {

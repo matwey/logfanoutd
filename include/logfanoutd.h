@@ -5,6 +5,8 @@
 
 #include <microhttpd.h>
 
+#include <vpath.h>
+
 struct logfanoutd_state {
 	struct MHD_Daemon* MHD_Daemon;
 	struct vpath_lookup* lookup;
@@ -21,7 +23,7 @@ struct logfanoutd_listen {
 	} value;
 };
 
-struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, const char* root_dir);
+struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_pair** aliases, size_t size);
 void logfanoutd_stop(struct logfanoutd_state* state);
 
 #endif // _LOGFANOUNTD_H

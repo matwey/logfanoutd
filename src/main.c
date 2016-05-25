@@ -11,22 +11,41 @@
 #endif // HAS_SYSTEMD
 
 #include <logfanoutd.h>
+#include <list.h>
+
+struct alias_list_element {
+	struct alias_list_element* next;
+	struct vpath_pair pair;
+};
 
 struct arguments {
 	struct logfanoutd_listen listen;
 	int verbose;
-	char* root_dir;
+	struct alias_list_element* alias_list;
 	int log;
 };
-void set_default_args(struct arguments* pargs) {
+
+static inline void set_default_args(struct arguments* pargs) {
 	struct sockaddr* sa = &pargs->listen.value.sa;
 	sa->sa_family = AF_INET;
 	((struct sockaddr_in*)sa)->sin_port = htons(8000);
 	((struct sockaddr_in*)sa)->sin_addr.s_addr = htonl(INADDR_ANY);
 	pargs->listen.type = LOGFANOUTD_LISTEN_SOCKADDR;
 	pargs->verbose = 0;
-	pargs->root_dir = NULL;
+	pargs->alias_list = NULL;
 	pargs->log = 0;
+}
+
+struct arguments* init_arguments() {
+	struct arguments* pargs = (struct arguments*)malloc(sizeof(struct arguments));
+	if (pargs == NULL)
+		return NULL;
+	set_default_args(pargs);
+	return pargs;
+}
+
+void free_arguments(struct arguments* pargs) {
+	free_list(pargs->alias_list);
 }
 
 static char argp_doc[] = "logfanoutd - simple HTTP log fanout server";
@@ -70,13 +89,20 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 #ifdef HAS_SYSTEMD
 	int num_sockets;
 #endif // HAS_SYSTEMD
+	struct alias_list_element* alias_element;
 
 	switch (key) {
 	case 'p':
 		x_sockaddr_set_port(&arguments->listen.value.sa, atoi(arg));
 		break;
 	case 'r':
-		arguments->root_dir = arg;
+		alias_element = (struct alias_list_element*)init_list(malloc(sizeof(struct alias_list_element)));
+		if (alias_element == NULL) {
+			return ARGP_ERR_UNKNOWN;
+		}
+		alias_element->pair.vpath = "/";
+		alias_element->pair.ppath = arg;
+		arguments->alias_list = list_push_back(arguments->alias_list, alias_element);
 		break;
 	case 'v':
 		arguments->verbose = 1;
@@ -127,20 +153,54 @@ int parse_args(int argc, char** argv, struct arguments* parguments) {
 	return argp_parse(&argp, argc, argv, 0, 0, parguments);
 }
 
+static struct vpath_pair** init_aliases(struct alias_list_element* list, size_t* size) {
+	struct vpath_pair** aliases = NULL;
+
+	*size = list_size(list);
+
+	aliases = (struct vpath_pair**)calloc(*size, sizeof(struct vpath_pair*));
+	for (size_t i = 0; i < *size && list != NULL; ++i, list = list->next) {
+		aliases[i] = &list->pair;
+	}
+
+	return aliases;
+}
+
 int main(int argc, char** argv) {
-	struct arguments arguments;
+	struct arguments* pargs;
 	struct logfanoutd_state* plf_state;
+	struct vpath_pair** aliases;
+	size_t aliases_size;
+	int ret = 1;
 
-	set_default_args(&arguments);
-	if(parse_args(argc, argv, &arguments))
-		return 1;
+	pargs = init_arguments();
+	if (pargs == NULL) {
+		goto fail_init_args;
+	}
+	if (parse_args(argc, argv, pargs)) {
+		goto fail_parse_args;
+	}
 
-	plf_state = logfanoutd_start(&(arguments.listen), arguments.verbose, arguments.log, arguments.root_dir);
-	if(plf_state == NULL)
-		return 1;
+	aliases = init_aliases(pargs->alias_list, &aliases_size);
+	if (aliases == NULL) {
+		goto fail_alloc_aliases;
+	}
+
+	plf_state = logfanoutd_start(&(pargs->listen), pargs->verbose, pargs->log, aliases, aliases_size);
+	if (plf_state == NULL) {
+		goto fail_logfanoutd_start;
+	}
 
 	getchar();
 
 	logfanoutd_stop(plf_state);
-	return 0;
+	ret = 0;
+
+fail_logfanoutd_start:
+	free(aliases);
+fail_alloc_aliases:
+fail_parse_args:
+	free_arguments(pargs);
+fail_init_args:
+	return ret;
 }

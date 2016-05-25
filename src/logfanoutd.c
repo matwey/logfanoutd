@@ -258,13 +258,6 @@ int request_handler(void *cls, struct MHD_Connection *connection,
 	return ret;
 }
 
-char* x_getcwd() {
-	char* buf = malloc(PATH_MAX);
-	if(buf == NULL)
-		return NULL;
-	return getcwd(buf, PATH_MAX);
-}
-
 static const char* x_inet_ntop(struct sockaddr* addr, char* buf, socklen_t size) {
 	switch(addr->sa_family) {
 	case AF_INET:
@@ -314,22 +307,13 @@ static unsigned short logfanountd_listen_famity(struct logfanoutd_listen* listen
 	return -1;
 }
 
-struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, const char* root_dir) {
-	struct vpath_pair root;
-	struct vpath_pair* pairs[] = {&root};
+struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_pair** aliases, size_t size) {
 	struct logfanoutd_state* newstate = malloc(sizeof(struct logfanoutd_state));
 	if(newstate == NULL) {
 		return NULL;
 	}
-	root.vpath = "/";
-	root.ppath = root_dir ? strdup(root_dir) : x_getcwd();
-	if (root.ppath == NULL) {
-		free(newstate);
-		return NULL;
-	}
 
-	newstate->lookup = init_vpath_lookup(pairs, 1);
-	free(root.ppath);
+	newstate->lookup = init_vpath_lookup(aliases, size);
 	if (newstate->lookup == NULL) {
 		free(newstate);
 		return NULL;

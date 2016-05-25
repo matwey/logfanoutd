@@ -32,6 +32,17 @@ START_TEST (test_list_push2) {
 }
 END_TEST
 
+START_TEST (test_list_push3) {
+	struct element* list = NULL;
+	struct element new;
+	init_list(&new);
+
+	list = list_push_back(list, &new);
+	ck_assert(list == &new);
+	ck_assert(new.next == NULL);
+}
+END_TEST
+
 START_TEST (test_list_size1) {
 	struct element* empty = NULL;
 	ck_assert_int_eq(list_size(empty), 0);
@@ -66,6 +77,17 @@ START_TEST (test_list_free1) {
 }
 END_TEST
 
+START_TEST (test_list_init1) {
+	ck_assert(init_list(NULL) == NULL);
+}
+END_TEST
+START_TEST (test_list_init2) {
+	struct element list;
+	init_list(&list);
+	ck_assert(list.next == NULL);
+}
+END_TEST
+
 Suite* list_suite(void) {
 	Suite *s;
 	TCase *tc_core;
@@ -76,10 +98,13 @@ Suite* list_suite(void) {
 
 	tcase_add_test(tc_core, test_list_push1);
 	tcase_add_test(tc_core, test_list_push2);
+	tcase_add_test(tc_core, test_list_push3);
 	tcase_add_test(tc_core, test_list_size1);
 	tcase_add_test(tc_core, test_list_size2);
 	tcase_add_test(tc_core, test_list_size3);
 	tcase_add_test(tc_core, test_list_free1);
+	tcase_add_test(tc_core, test_list_init1);
+	tcase_add_test(tc_core, test_list_init2);
 	suite_add_tcase(s, tc_core);
 
 	return s;

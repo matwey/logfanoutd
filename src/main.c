@@ -52,6 +52,7 @@ static char argp_doc[] = "logfanoutd - simple HTTP log fanout server";
 static struct argp_option argp_options[] = {
 	{"port",    'p', "PORT", 0, "Use port number" },
 	{"root_dir",'r', "FILE", 0, "Use root dir" },
+	{"alias",   'a', "VPATH:PPATH", 0, "Alias physical path PPATH to virtual VPATH" },
 	{"verbose", 'v', 0,      0, "Produce verbose output" },
 	{"log",     'l', 0,      0, "Log requests to stdout" },
 	{"listen",  256, "ADDR", 0, "Address to listen on" },
@@ -82,6 +83,28 @@ static unsigned short x_sockaddr_get_port(struct sockaddr* sa) {
 	}
 	return (unsigned short)(-1);
 }
+static char* parse_alias_opt(char* arg) {
+	char* ret = NULL;
+	char* out = arg;
+
+	while (arg[0] != '\0') {
+		switch (arg[0]) {
+		case ':':
+			ret = ++arg;
+			*out = '\0';
+			out = ret;
+		break;
+		case '\\':
+			if (arg[1] == ':') {
+				arg++; // skip escaping slash
+			}
+		default:
+			*out++ = *arg++;
+		}
+	}
+
+	return ret;
+}
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 	struct arguments *arguments = state->input;
@@ -94,6 +117,19 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 	switch (key) {
 	case 'p':
 		x_sockaddr_set_port(&arguments->listen.value.sa, atoi(arg));
+		break;
+	case 'a':
+		alias_element = (struct alias_list_element*)init_list(malloc(sizeof(struct alias_list_element)));
+		if (alias_element == NULL) {
+			return ARGP_ERR_UNKNOWN;
+		}
+		alias_element->pair.vpath = arg;
+		alias_element->pair.ppath = parse_alias_opt(arg);
+		if (alias_element->pair.ppath == NULL) {
+			free(alias_element);
+			return ARGP_ERR_UNKNOWN;
+		}
+		arguments->alias_list = list_push_back(arguments->alias_list, alias_element);
 		break;
 	case 'r':
 		alias_element = (struct alias_list_element*)init_list(malloc(sizeof(struct alias_list_element)));

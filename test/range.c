@@ -70,6 +70,22 @@ START_TEST (test_range_parse10) {
 	ck_assert_int_eq(parse_range(value,&rs), -1);
 }
 END_TEST
+START_TEST (test_range_parse64) {
+	static const char value[] = "bytes=36893488147419103232-";
+	struct range_set rs;
+	// Overflow
+	ck_assert_int_eq(parse_range(value,&rs), -1);
+}
+END_TEST
+START_TEST (test_range_parse64_1) {
+	static const char value[] = "bytes=18446744073709551615-";
+	struct range_set rs;
+	// Overflow
+	ck_assert_int_eq(parse_range(value,&rs), 0);
+	ck_assert_int_eq(rs.range.interval.first, 18446744073709551615UL);
+	ck_assert_int_eq(rs.type, range_first);
+}
+END_TEST
 START_TEST (test_range_validation1) {
 	struct range_set rs;
 	rs.type = range_unknown; // unknown is always valid
@@ -224,6 +240,8 @@ Suite* range_suite(void) {
 	tcase_add_test(tc_core, test_range_parse8);
 	tcase_add_test(tc_core, test_range_parse9);
 	tcase_add_test(tc_core, test_range_parse10);
+	tcase_add_test(tc_core, test_range_parse64);
+	tcase_add_test(tc_core, test_range_parse64_1);
 	tcase_add_test(tc_core, test_range_validation1);
 	tcase_add_test(tc_core, test_range_validation2);
 	tcase_add_test(tc_core, test_range_validation3);

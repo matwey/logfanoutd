@@ -1,10 +1,12 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <argp.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef HAS_SYSTEMD
 #   include <systemd/sd-daemon.h>
@@ -202,12 +204,18 @@ static struct vpath_pair** init_aliases(struct alias_list_element* list, size_t*
 	return aliases;
 }
 
+void handle_signal(int signum) {
+}
+
 int main(int argc, char** argv) {
 	struct arguments* pargs;
 	struct logfanoutd_state* plf_state;
 	struct vpath_pair** aliases;
 	size_t aliases_size;
 	int ret = 1;
+
+	signal(SIGINT, &handle_signal);
+	signal(SIGTERM, &handle_signal);
 
 	pargs = init_arguments();
 	if (pargs == NULL) {
@@ -227,7 +235,7 @@ int main(int argc, char** argv) {
 		goto fail_logfanoutd_start;
 	}
 
-	getchar();
+	pause();
 
 	logfanoutd_stop(plf_state);
 	ret = 0;

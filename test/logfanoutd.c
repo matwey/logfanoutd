@@ -219,7 +219,6 @@ Suite* logfanoutd_suite(void) {
 	tcase_add_test(tc_core, test_singlefile_file_range1);
 	tcase_add_test(tc_core, test_singlefile_file_range2);
 	tcase_add_test(tc_core, test_singlefile_file_range3);
-	tcase_add_test(tc_core, test_singlefile_file_range_case_64);
 	tcase_add_test(tc_core, test_singlefile_file_range_case);
 	suite_add_tcase(s, tc_core);
 

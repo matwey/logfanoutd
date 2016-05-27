@@ -322,7 +322,8 @@ struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int 
 	newstate->MHD_Daemon = MHD_start_daemon(
 		MHD_USE_SELECT_INTERNALLY |
 			(verbose ? MHD_USE_DEBUG : MHD_NO_FLAG) |
-			(logfanountd_listen_famity(listen) == AF_INET6 ? MHD_USE_IPv6 : MHD_NO_FLAG),
+			(logfanountd_listen_famity(listen) == AF_INET6 ? MHD_USE_IPv6 : MHD_NO_FLAG) |
+			(listen->type == LOGFANOUTD_LISTEN_FD ? MHD_USE_PIPE_FOR_SHUTDOWN : MHD_NO_FLAG),
 		0,
 		NULL, // MHD_AcceptPolicyCallback apc
 		NULL, // void *apc_cls 

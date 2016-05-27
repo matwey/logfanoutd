@@ -1,0 +1,16 @@
+[Unit]
+Description=Simple log fanout HTTP server
+After=network.target
+Requires=logfanoutd.socket
+
+[Service]
+ExecStart=/usr/bin/logfanoutd --systemd $LOGFANOUTD_ARGS
+Type=simple
+StandardOutput=journal
+StandardError=journal
+CapabilityBoundingSet=
+LimitFSIZE=0
+
+[Install]
+Also=logfanoutd.socket
+WantedBy=multi-user.target

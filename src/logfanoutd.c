@@ -284,7 +284,7 @@ static void* log_callback(void * cls, const char * uri) {
 #if MHD_VERSION > 0x00093000
 	info = MHD_get_connection_info(con, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
 #endif // MHD_VERSION > 0x00093000
-	printf("%s %s %s\n",
+	fprintf(stderr, "%s %s %s\n",
 		(tm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", tm) ? time_str : "UNKNOWN"),
 		(info && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
 		uri);

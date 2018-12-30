@@ -95,25 +95,26 @@ static ssize_t dir_list_callback_ket(struct dir_list_state* pdls, char** pbuf, s
 	return ret;
 }
 static ssize_t dir_list_callback(void *cls, uint64_t pos, char *buf, size_t max) {
-	size_t init_max = max;
-	size_t ret = 0;
+	const size_t init_max = max;
 	struct dir_list_state* pdls = cls;
 	
 	if(pdls->item_type==3)
 		return MHD_CONTENT_READER_END_OF_STREAM;
 
-	if((ret = dir_list_callback_bra(pdls, &buf, &max)) < 0) {
-		return init_max - max;
+	if(dir_list_callback_bra(pdls, &buf, &max) < 0) {
+		goto end;
 	}
-	if((ret = dir_list_callback_item(pdls, &buf, &max)) < 0) {
-		return init_max - max;
+	if(dir_list_callback_item(pdls, &buf, &max) < 0) {
+		goto end;
 	}
 	do {
 		pdls->dentry = readdir(pdls->dir);
 	} while(pdls->dentry != NULL && pdls->dentry->d_name[0] == '.');
-	if((ret = dir_list_callback_ket(pdls, &buf, &max)) < 0) {
-		return init_max - max;
+	if(dir_list_callback_ket(pdls, &buf, &max) < 0) {
+		goto end;
 	}
+
+end:
 	return init_max - max;
 }
 static void dir_list_callback_free(void *cls) {

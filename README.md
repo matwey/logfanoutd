@@ -1,4 +1,5 @@
 [![Build Status](https://semaphoreci.com/api/v1/projects/4991dcb7-bb37-4b56-a9e8-277a454b2ff1/483984/badge.svg)](https://semaphoreci.com/matwey/logfanoutd)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/matwey/logfanoutd.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/matwey/logfanoutd/context:cpp)
 
 # logfanoutd
 logfanoutd is a simple HTTP server able to handle range requests as per [RFC7233] powered by [libmicrohttpd] library.

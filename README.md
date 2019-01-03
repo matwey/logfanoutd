@@ -25,6 +25,7 @@ make all test
 To run the server, the following options are available
 * ```--port``` - specify port number to listen on
 * ```--root_dir``` - specify root directory to serve
+* ```--alias=VPATH:PPATH``` - alias physical path `PPATH` to virtual `VPATH`
 * ```--listen``` - specify addr to listen on (optional)
 
 ```

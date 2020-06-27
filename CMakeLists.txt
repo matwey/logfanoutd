@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 project(logfanoutd C)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_C_STANDARD 99)
+
 include(CheckSymbolExists)
 
 find_package(PkgConfig REQUIRED)
@@ -10,7 +12,7 @@ pkg_check_modules(CHECK REQUIRED check)
 pkg_check_modules(SYSTEMD libsystemd)
 find_package(CURL REQUIRED)
 
-set(CMAKE_C_FLAGS "-std=c99 -D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED ${MICROHTTPD_CFLAGS} ${CHECK_CFLAGS} ${SYSTEMD_CFLAGS}")
+set(CMAKE_C_FLAGS "-D_FILE_OFFSET_BITS=64 -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED ${MICROHTTPD_CFLAGS} ${CHECK_CFLAGS} ${SYSTEMD_CFLAGS}")
 
 include_directories ("${PROJECT_SOURCE_DIR}/include" ${MICROHTTPD_INCLUDE_DIRS} ${CHECK_INCLUDE_DIRS} ${SYSTEMD_INCLUDE_DIRS})
 

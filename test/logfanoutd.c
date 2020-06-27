@@ -142,11 +142,13 @@ START_TEST (test_singlefile_file_fd) {
 	size_t i = 0;
 	for(i = 0; i < sizeof(expected)/sizeof(expected[0]); ++i) expected[i] = i;
 	long retcode;
+	int enable = 1;
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons(7999);
 	sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	lf_listen.type = LOGFANOUTD_LISTEN_FD;
 	lf_listen.value.fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	ck_assert_int_ge(setsockopt(lf_listen.value.fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)), 0);
 	ck_assert_int_ge(bind(lf_listen.value.fd, (struct sockaddr*)&sa, sizeof(sa)), 0);
 	ck_assert_int_ge(listen(lf_listen.value.fd, 5), 0);
 	http_get_request_with_headers_and_listen(PROJECT_ROOT "/test/data/single", "http://127.0.0.1:7999/file", &retcode, pbuf, NULL, &lf_listen);

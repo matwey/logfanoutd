@@ -277,16 +277,17 @@ static void* log_callback(void * cls, const char * uri) {
 	char remote_addr[max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)] = {0};
 	char time_str[32] = {0};
 	time_t t;
-	struct tm *tm = NULL;
+	struct tm tm;
+	struct tm *ptm = NULL;
 	const union MHD_ConnectionInfo* info = NULL;
 
 	t = time(NULL);
-	tm = localtime(&t);
+	ptm = localtime_r(&t, &tm);
 #if MHD_VERSION > 0x00093000
 	info = MHD_get_connection_info(con, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
 #endif // MHD_VERSION > 0x00093000
 	fprintf(stderr, "%s %s %s\n",
-		(tm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", tm) ? time_str : "UNKNOWN"),
+		(ptm && strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z", &tm) ? time_str : "UNKNOWN"),
 		(info && x_inet_ntop(info->client_addr, remote_addr, sizeof(remote_addr)) ? remote_addr : "UNKNOWN"),
 		uri);
 	return NULL;

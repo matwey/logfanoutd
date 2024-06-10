@@ -71,7 +71,12 @@ void clear_range(struct range_set* pset) {
 	pset->type = range_unknown;
 }
 
+#if MHD_VERSION < 0x00097100
 int range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
+#else
+enum MHD_Result range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
+#endif // MHD_VERSION
+
 	struct range_set* pset = cls;
 
 	if(x_strcasecmp(key, MHD_HTTP_HEADER_RANGE) == 0) {

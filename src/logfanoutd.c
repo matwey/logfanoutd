@@ -168,7 +168,13 @@ static int handle_error_range(struct MHD_Connection *connection, uint64_t size) 
 
 	response = MHD_create_response_from_buffer(0, empty, MHD_RESPMEM_PERSISTENT);
 	add_header_range_error(response, size);
-	ret = MHD_queue_response (connection, MHD_HTTP_REQUESTED_RANGE_NOT_SATISFIABLE, response);
+	ret = MHD_queue_response (connection,
+#if MHD_VERSION < 0x00097400
+		MHD_HTTP_REQUESTED_RANGE_NOT_SATISFIABLE,
+#else
+		MHD_HTTP_RANGE_NOT_SATISFIABLE,
+#endif // MHD_VERSION
+		response);
 	MHD_destroy_response (response);
 	return ret;
 }
@@ -237,7 +243,12 @@ static int handle_file(struct MHD_Connection *connection, struct vpath* pvpath) 
 	}
 	return handle_file_range(connection, fd, pvpath->stat.st_size, &rs);
 }
+
+#if MHD_VERSION < 0x00097100
 int request_handler(void *cls, struct MHD_Connection *connection,
+#else
+enum MHD_Result request_handler(void *cls, struct MHD_Connection *connection,
+#endif // MHD_VERSION
 	const char *url, const char *method, const char *version,
 	const char *upload_data, size_t *upload_data_size, void **con_cls) {
 

@@ -15,7 +15,11 @@ struct range_set {
 	} range;
 };
 
+#if MHD_VERSION < 0x00097100
 int range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value);
+#else
+enum MHD_Result range_iterator(void *cls, enum MHD_ValueKind kind, const char *key, const char *value);
+#endif // MHD_VERSION
 int parse_range(const char* value, struct range_set* pset);
 void clear_range(struct range_set* pset);
 int is_valid_range(struct range_set* pset, uint64_t size);

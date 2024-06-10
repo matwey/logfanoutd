@@ -192,7 +192,7 @@ ret:
 
 struct vpath_match* match_vpath(const struct vpath_lookup* lookup, const char* vpath) {
 	struct vpath_match* matched = NULL;
-	size_t i,j;
+	size_t i;
 	size_t lower = 0;
 	size_t upper = lookup->alias_num;
 

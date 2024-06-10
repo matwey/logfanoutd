@@ -66,7 +66,9 @@ static size_t http_get_request_with_headers_listen_and_aliases(struct vpath_pair
 	pbuf->buf[pbuf->size] = 0;
 
 	curl_easy_cleanup(c);
-        logfanoutd_stop(plf_state);
+	logfanoutd_stop(plf_state);
+
+	return 0;
 }
 static size_t http_get_request_with_headers_and_listen(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr, struct logfanoutd_listen* plf_listen) {
 	struct vpath_pair root;

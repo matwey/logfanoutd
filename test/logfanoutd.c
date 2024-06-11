@@ -60,7 +60,7 @@ static size_t http_get_request_with_headers_listen_and_aliases(struct vpath_pair
 	if((errornum = curl_easy_perform(c)) != CURLE_OK) {
 		curl_easy_cleanup(c);
         	logfanoutd_stop(plf_state);
-		ck_abort_msg(curl_easy_strerror(errornum));
+		ck_abort_msg("curl failure: %s", curl_easy_strerror(errornum));
 	}
 	curl_easy_getinfo(c, CURLINFO_RESPONSE_CODE, pretcode);
 	pbuf->buf[pbuf->size] = 0;

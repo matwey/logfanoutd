@@ -21,6 +21,7 @@ char* parse_uint64(const char* value, uint64_t* x) {
 	uintmax_t tmpint;
 	char* endptr;
 
+	errno = 0; // clear errno to distinguish the overflow and true UINTMAX_MAX
 	tmpint = strtoumax(value, &endptr, 10);
 	if(tmpint == 0 && endptr == value) // nothing found to convert
 		return NULL;

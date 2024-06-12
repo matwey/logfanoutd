@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.6)
-project(logfanoutd LANGUAGES C VERSION 0.2.3)
+project(logfanoutd LANGUAGES C VERSION 0.2.4)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)

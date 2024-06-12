@@ -320,17 +320,13 @@ static unsigned short logfanountd_listen_famity(struct logfanoutd_listen* listen
 	return -1;
 }
 
-struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_pair** aliases, size_t size) {
+struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_lookup* vpath_lookup) {
 	struct logfanoutd_state* newstate = malloc(sizeof(struct logfanoutd_state));
 	if(newstate == NULL) {
 		return NULL;
 	}
 
-	newstate->lookup = init_vpath_lookup(aliases, size);
-	if (newstate->lookup == NULL) {
-		free(newstate);
-		return NULL;
-	}
+	newstate->lookup = vpath_lookup;
 
 	newstate->MHD_Daemon = MHD_start_daemon(
 		MHD_USE_SELECT_INTERNALLY |
@@ -356,6 +352,5 @@ struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int 
 }
 void logfanoutd_stop(struct logfanoutd_state* state) {
 	MHD_stop_daemon(state->MHD_Daemon);
-	free_vpath_lookup(state->lookup);
 	free(state);
 }

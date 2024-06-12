@@ -137,16 +137,16 @@ int cmp_vpath_pair(const struct vpath_pair* x, const struct vpath_pair* y) {
 }
 
 static int init_vpath_lookup_cmp(const void* x, const void* y) {
-	const struct vpath_pair* x1 = *((const struct vpath_pair**)x);
-	const struct vpath_pair* y1 = *((const struct vpath_pair**)y);
+	const struct vpath_pair* x1 = (const struct vpath_pair*)x;
+	const struct vpath_pair* y1 = (const struct vpath_pair*)y;
 	return cmp_vpath_pair(x1, y1);
 }
 
-struct vpath_lookup* init_vpath_lookup(struct vpath_pair** pairs, size_t size) {
+struct vpath_lookup* init_vpath_lookup(struct vpath_pair* pairs, size_t size) {
 	struct vpath_lookup* lookup = NULL;
 	size_t i;
 
-	qsort(pairs, size, sizeof(struct vpath_pair*), &init_vpath_lookup_cmp);
+	qsort(pairs, size, sizeof(struct vpath_pair), &init_vpath_lookup_cmp);
 
 	lookup = (struct vpath_lookup*)malloc(sizeof(struct vpath_lookup));
 	if (lookup == NULL)
@@ -161,9 +161,9 @@ struct vpath_lookup* init_vpath_lookup(struct vpath_pair** pairs, size_t size) {
 	lookup->prefix_len = 0;
 	lookup->dest_len = 0;
 	for (i = 0; i < size; ++i) {
-		lookup->match[i].len = strlen(pairs[i]->vpath);
+		lookup->match[i].len = strlen(pairs[i].vpath);
 		const size_t vpath_len = lookup->match[i].len + 1;
-		const size_t ppath_len = strlen(pairs[i]->ppath) + 1;
+		const size_t ppath_len = strlen(pairs[i].ppath) + 1;
 		lookup->prefix_len = (lookup->prefix_len < vpath_len ? vpath_len : lookup->prefix_len);
 		lookup->dest_len = (lookup->dest_len < ppath_len ? ppath_len : lookup->dest_len);
 	}
@@ -174,10 +174,12 @@ struct vpath_lookup* init_vpath_lookup(struct vpath_pair** pairs, size_t size) {
 	lookup->dest = lookup->prefix + size * lookup->prefix_len;
 
 	for (i = 0; i < size; ++i) {
-		lookup->match[i].pair.vpath = lookup->prefix + i * lookup->prefix_len;
-		lookup->match[i].pair.ppath = lookup->dest + i * lookup->dest_len;
-		strcpy(lookup->match[i].pair.vpath, pairs[i]->vpath);
-		strcpy(lookup->match[i].pair.ppath, pairs[i]->ppath);
+		char* new_vpath = lookup->prefix + i * lookup->prefix_len;
+		char* new_ppath = lookup->dest + i * lookup->dest_len;
+		strcpy(new_vpath, pairs[i].vpath);
+		strcpy(new_ppath, pairs[i].ppath);
+		lookup->match[i].pair.vpath = new_vpath;
+		lookup->match[i].pair.ppath = new_ppath;
 	}
 
 	return lookup;

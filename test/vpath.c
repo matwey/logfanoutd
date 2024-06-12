@@ -7,23 +7,15 @@
 struct vpath_lookup* lookup;
 
 void match_setup() {
-	struct vpath_pair** pairs = NULL;
-	struct vpath_pair pair[] = {
+	struct vpath_pair pairs[] = {
 		{"/alias/sub", "/subalias"},
 		{"/", "/root"},
 		{"/alias", "/alias"}
 	};
 	size_t i;
-	size_t size = sizeof(pair) / sizeof(struct vpath_pair);
-
-	pairs = (struct vpath_pair**)calloc(size, sizeof(struct vpath_pair*));
-	for (i = 0; i < size; i++) {
-		pairs[i] = &pair[i];
-	}
+	size_t size = sizeof(pairs) / sizeof(pairs[0]);
 
 	lookup = init_vpath_lookup(pairs, size);
-
-	free(pairs);
 }
 void match_teardown() {
 	free_vpath_lookup(lookup);

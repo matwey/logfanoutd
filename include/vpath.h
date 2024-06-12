@@ -13,8 +13,8 @@ struct vpath {
 };
 
 struct vpath_pair {
-	char* vpath;
-	char* ppath;
+	const char* vpath;
+	const char* ppath;
 };
 
 struct vpath_match {
@@ -31,7 +31,7 @@ struct vpath* init_vpath(const struct vpath_lookup* lookup, const char* path);
 void free_vpath(struct vpath* pvpath);
 int is_directory(struct vpath* pvpath);
 
-struct vpath_lookup* init_vpath_lookup(struct vpath_pair** pairs, size_t size);
+struct vpath_lookup* init_vpath_lookup(struct vpath_pair* pairs, size_t size);
 struct vpath_match* match_vpath(const struct vpath_lookup* lookup, const char* vpath);
 void free_vpath_lookup(struct vpath_lookup* lookup);
 

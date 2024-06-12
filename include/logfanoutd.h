@@ -23,7 +23,7 @@ struct logfanoutd_listen {
 	} value;
 };
 
-struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_pair** aliases, size_t size);
+struct logfanoutd_state* logfanoutd_start(struct logfanoutd_listen* listen, int verbose, int log, struct vpath_lookup* vpath_lookup);
 void logfanoutd_stop(struct logfanoutd_state* state);
 
 #endif // _LOGFANOUNTD_H

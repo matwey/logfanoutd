@@ -40,11 +40,6 @@ add_test(test_vpath test_vpath)
 target_include_directories(test_vpath PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(test_vpath PkgConfig::CHECK)
 
-add_executable(test_list test/list.c src/list.c)
-add_test(test_list test_list)
-target_include_directories(test_list PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(test_list PkgConfig::CHECK)
-
 add_executable(test_range test/range.c src/range.c)
 add_test(test_range test_range)
 target_include_directories(test_range PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

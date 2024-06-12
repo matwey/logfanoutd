@@ -43,12 +43,16 @@ static size_t fill_buffer(void* buf, size_t size, size_t nmemd, void* userdata) 
 	return newsize;
 }
 
-static size_t http_get_request_with_headers_listen_and_aliases(struct vpath_pair** aliases, size_t size, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr, struct logfanoutd_listen* plf_listen) {
+static size_t http_get_request_with_headers_listen_and_aliases(struct vpath_pair* aliases, size_t size, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr, struct logfanoutd_listen* plf_listen) {
 	struct logfanoutd_state* plf_state;
 	CURL *c;
 	CURLcode errornum;
 
-	plf_state = logfanoutd_start(plf_listen, 1, 1, aliases, size);
+	struct vpath_lookup* vpath_lookup = init_vpath_lookup(aliases, size);
+	if (vpath_lookup == NULL)
+		ck_abort_msg("Can not allocate vpath_lookup");
+
+	plf_state = logfanoutd_start(plf_listen, 1, 1, vpath_lookup);
 	if(plf_state == NULL)
 		ck_abort_msg("Can not start daemon");
 	c = curl_easy_init();
@@ -68,13 +72,12 @@ static size_t http_get_request_with_headers_listen_and_aliases(struct vpath_pair
 	curl_easy_cleanup(c);
 	logfanoutd_stop(plf_state);
 
+	free_vpath_lookup(vpath_lookup);
+
 	return 0;
 }
 static size_t http_get_request_with_headers_and_listen(const char* root_dir, const char* url, long* pretcode, struct buffer* pbuf, struct curl_slist *hdr, struct logfanoutd_listen* plf_listen) {
-	struct vpath_pair root;
-	root.vpath = "/";
-	root.ppath = (char*)root_dir;
-	struct vpath_pair* aliases[] = {&root};
+	struct vpath_pair aliases[] = {{"/", root_dir}};
 	size_t size = sizeof(aliases) / sizeof(aliases[0]);
 	return http_get_request_with_headers_listen_and_aliases(aliases, size, url, pretcode, pbuf, hdr, plf_listen);
 }
